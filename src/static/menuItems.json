@@ -1,0 +1,36 @@
+[
+    {
+        "key": "home",
+        "label": "Home",
+        "to": "/",
+        "icon": "pi pi-home",
+        "order": 0
+    },
+    {
+        "key": "administration.contact-types",
+        "label": "Contact Types",
+        "to": "/administration/contact-types",
+        "icon": "pi pi-fw pi-user",
+        "permissions": [
+            "administration.view"
+        ]
+    },
+    {
+        "key": "administration.roles",
+        "label": "User Roles",
+        "to": "/administration/roles",
+        "icon": "pi pi-fw pi-shield",
+        "permissions": [
+            "administration.view"
+        ]
+    },
+    {
+        "key": "administration.email-templates",
+        "label": "Email Templates",
+        "to": "/administration/email-templates",
+        "icon": "pi pi-fw pi-envelope",
+        "permissions": [
+            "administration.view"
+        ]
+    }
+]

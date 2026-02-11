@@ -1,0 +1,128 @@
+on:
+    push:
+        branches: [main, demo, staging, promedic]
+    pull_request:
+        branches: [main, demo, staging, promedic]
+        types: [opened, synchronize, labeled]
+
+name: 🚀 Deploy website on push
+
+jobs:
+    web-deploy:
+        name: 🎉 Deploy to ${{ matrix.environment }}
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                include:
+                    # Production Environment
+                    - branch: main
+                      environment: production
+                      api_base_url: https://cookds.servicore.io/backend
+                      app_url: https://cookds.servicore.io
+                      customer_portal_url: https://cp-cookds.servicore.io
+                      ftp_server_secret: FTP_SERVER
+                      ftp_username_secret: FTP_USERNAME
+                      ftp_password_secret: FTP_PASSWORD
+
+                    # Promedic Environment
+                    - branch: promedic
+                      environment: promedic
+                      api_base_url: https://promedic.servicore.io/backend
+                      app_url: https://promedic.servicore.io
+                      customer_portal_url: https://cp-promedic.servicore.io
+                      ftp_server_secret: FTP_SERVER_PROMEDIC
+                      ftp_username_secret: FTP_USERNAME_PROMEDIC
+                      ftp_password_secret: FTP_PASSWORD_PROMEDIC
+
+                    # Demo Environment
+                    - branch: demo
+                      environment: demo
+                      api_base_url: https://demo.servicore.io/backend
+                      app_url: https://demo.servicore.io
+                      customer_portal_url: https://cp-demo.servicore.io
+                      ftp_server_secret: FTP_SERVER_DEMO
+                      ftp_username_secret: FTP_USERNAME_DEMO
+                      ftp_password_secret: FTP_PASSWORD_DEMO
+
+                    # Staging Environment
+                    - branch: staging
+                      environment: staging
+                      api_base_url: https://staging.servicore.io/backend
+                      app_url: https://staging.servicore.io
+                      customer_portal_url: https://cp-staging.servicore.io
+                      ftp_server_secret: FTP_SERVER_STAGING
+                      ftp_username_secret: FTP_USERNAME_STAGING
+                      ftp_password_secret: FTP_PASSWORD_STAGING
+
+        steps:
+            - name: 🚚 Get latest code
+              if: |
+                  (
+                    github.event_name == 'push' &&
+                    github.ref == format('refs/heads/{0}', matrix.branch)
+                  ) ||
+                  (
+                    github.event_name == 'pull_request' &&
+                    (
+                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
+                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
+                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                    )
+                  )
+              uses: actions/checkout@v2
+              with:
+                  ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
+
+            - name: 📦 Build Vue app for ${{ matrix.environment }}
+              if: |
+                  (
+                    github.event_name == 'push' &&
+                    github.ref == format('refs/heads/{0}', matrix.branch)
+                  ) ||
+                  (
+                    github.event_name == 'pull_request' &&
+                    (
+                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
+                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
+                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                    )
+                  )
+              run: |
+                  npm install
+                  npm run build
+              env:
+                  VITE_API_BASE_URL: ${{ matrix.api_base_url }}
+                  VITE_APP_URL: ${{ matrix.app_url }}
+                  VITE_CUSTOMER_PORTAL_URL: ${{ matrix.customer_portal_url }}
+
+            - name: 📂 Sync frontend build to ${{ matrix.environment }}
+              if: |
+                  (
+                    github.event_name == 'push' &&
+                    github.ref == format('refs/heads/{0}', matrix.branch)
+                  ) ||
+                  (
+                    github.event_name == 'pull_request' &&
+                    (
+                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
+                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
+                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                    )
+                  )
+              uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+              with:
+                  server: ${{ secrets[matrix.ftp_server_secret] }}
+                  username: ${{ secrets[matrix.ftp_username_secret] }}
+                  password: ${{ secrets[matrix.ftp_password_secret] }}
+                  protocol: ftps
+                  port: 21
+                  security: loose
+                  timeout: 120000
+                  local-dir: ./dist/
+                  server-dir: /
+                  exclude: |
+                      backend/**
+                  dangerous-clean-slate: false
