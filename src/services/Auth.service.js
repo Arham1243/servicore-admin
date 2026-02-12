@@ -1,5 +1,5 @@
 import AxiosService from './Axios.service';
-const AUTH_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
+const AUTH_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/admin/auth`;
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
 export const login = (payload) => {
