@@ -1,18 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useCookies } from 'vue3-cookies';
-import { updateAbility } from '@/plugins/ability';
-import { AuthService } from '@/services';
-import { useGlobalStore } from '@/stores';
 
+import { AuthService } from '@/services';
 export const useSessionStore = defineStore('SessionStore', () => {
-    const globalStore = useGlobalStore();
+
     const { cookies } = useCookies();
     const user = ref(null);
-    const menuItems = ref([]);
-    const myCompany = ref({});
-    const permissions = ref([]);
-    const userRole = ref({});
     const intendedRoute = ref(sessionStorage.getItem('intendedRoute'));
 
     const startUserSession = (data) => {
@@ -35,7 +29,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         cookies.remove('tmb_cookie', null);
         sessionStorage.removeItem('email');
         user.value = null;
-        permissions.value = [];
+
     };
 
     const setCookie = (value) => {
@@ -57,12 +51,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
     const me = async () => {
         try {
             const res = (await AuthService.me()).data;
-            user.value = res.data;
-            permissions.value = res.permissions;
-            menuItems.value = res.menu_items;
-            myCompany.value = res.my_company;
-            userRole.value = res.role;
-            updateAbility(permissions.value);
+            user.value = res.data
             return user.value;
         } catch (error) {
             throw error;
@@ -86,10 +75,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         clearSessionState,
         me,
         user,
-        permissions,
-        menuItems,
-        myCompany,
-        userRole,
+        
 
         setEmail,
         setCookie,
