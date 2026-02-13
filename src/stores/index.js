@@ -5,4 +5,6 @@ export * from './Auth';
 export * from './Common';
 export * from './Session';
 export * from './Menu';
+export * from './Plan';
+
 export default createPinia();

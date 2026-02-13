@@ -24,20 +24,46 @@ export default [
                 meta: { breadcrumb: [{ label: 'Dashboard' }] },
                 component: () => import('@/views/dashboards/Dashboard.vue')
             },
-              {
+            {
                 path: 'menu',
                 name: 'Menu',
-                component: () =>
-                    import(
-                        '@/views/menu/index.vue'
-                    ),
+                component: () => import('@/views/menu/index.vue'),
+                meta: {
+                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Menu' }]
+                }
+            },
+            {
+                path: 'plans',
+                name: 'Plans',
+                component: () => import('@/views/plan/index.vue'),
+                meta: {
+                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Plans' }]
+                }
+            },
+            {
+                path: 'plans/add',
+                name: 'AddPlan',
+                component: () => import('@/views/plan/add.vue'),
                 meta: {
                     breadcrumb: [
                         { label: 'Dashboard' },
-                        { label: 'Menu' }
-                    ],
+                        { label: 'Plans', to: '/plans' },
+                        { label: 'Add Plan' }
+                    ]
                 }
             },
+            {
+                path: 'plans/:id/edit',
+                name: 'EditPlan',
+                component: () => import('@/views/plan/edit.vue'),
+                meta: {
+                    breadcrumb: [
+                        { label: 'Dashboard' },
+                        { label: 'Plans', to: '/plans' },
+                        { label: 'Edit Plan' }
+                    ]
+                }
+            }
         ]
     },
     {
