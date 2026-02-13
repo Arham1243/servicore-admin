@@ -7,13 +7,10 @@
         "order": 0
     },
     {
-        "key": "administration.contact-types",
-        "label": "Contact Types",
-        "to": "/administration/contact-types",
-        "icon": "pi pi-fw pi-user",
-        "permissions": [
-            "administration.view"
-        ]
+        "key": "menu",
+        "label": "Menu",
+        "to": "/menu",
+        "icon": "pi pi-fw pi-list"
     },
     {
         "key": "administration.roles",

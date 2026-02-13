@@ -1,19 +1,15 @@
 <script setup>
 import { computed, onBeforeMount, ref } from 'vue';
-import {
-    useCreditCardStore,
-    useUserStore
-} from '@/modules/administration/stores';
-import { useGlobalStore, useSessionStore } from '@/stores';
+import { useMenuStore } from '@/stores';
+import { useGlobalStore } from '@/stores';
 import { PaginationOptions, SortFilterOptions } from '@/config';
 import { truncate } from 'lodash-es';
 import { useHelpers } from '@/composables';
 
-const creditCardStore = useCreditCardStore();
+const helpers = useHelpers();
+
+const menuStore = useMenuStore();
 const globalStore = useGlobalStore();
-const userStore = useUserStore();
-const sessionStore = useSessionStore();
-const { makeTitleCase, filterByPermission, mapKeysToIds } = useHelpers();
 
 const pagination = new PaginationOptions();
 const sortFilters = new SortFilterOptions();
@@ -28,12 +24,11 @@ const totalRecords = ref();
 const showDialog = ref(false);
 const deleteDialog = ref(false);
 const changeStatusDialog = ref(false);
-const loadingUsers = ref(false);
-const users = ref([]);
+const defaultDialog = ref(false);
 const formData = ref({
     name: '',
-    system_link: 'NC',
-    users: [],
+    type: '',
+    is_default: false,
     status: true
 });
 
@@ -49,28 +44,22 @@ const menuItems = computed(() => {
             label: 'Edit',
             icon: 'pi pi-pencil',
             command: () => editItem(),
-            permission: 'administration.edit'
         },
         {
             label: isItemActive.value ? 'Make Inactive' : 'Make Active',
             icon: isItemActive.value ? 'pi pi-times' : 'pi pi-check',
             command: () => showChangeStatusDialog(),
-            permission: 'administration.edit'
         },
-        {
-            label: 'Delete',
-            icon: 'pi pi-trash',
-            command: () => showDeleteDialog(),
-            permission: 'administration.delete'
-        }
-    ];
+     
+    ].filter(Boolean);
 
-    return filterByPermission(allMenuItems);
+    return allMenuItems;
 });
 
 const isItemActive = computed(() => {
     return selectedItem.value && selectedItem.value.status;
 });
+
 
 const openDialog = (mode = 'add') => {
     isEditMode.value = mode === 'edit';
@@ -88,28 +77,27 @@ const onShow = () => {
 
 const resetForm = () => {
     formData.value.name = '';
-    formData.value.system_link = 'NC';
-    formData.value.users = [];
+    formData.value.type = '';
     formData.value.status = true;
+    formData.value.is_default = false;
     globalStore.clearErrors();
 };
 
 const editItem = () => {
     resetForm();
     formData.value.name = selectedItem.value.name;
-    formData.value.system_link = selectedItem.value.system_link;
-    formData.value.users = selectedItem.value.users?.map((u) => u.id);
+    formData.value.type = selectedItem.value.type;
+    formData.value.is_default = selectedItem.value.is_default;
     formData.value.status = selectedItem.value.status;
     openDialog('edit');
 };
 
-const showDeleteDialog = () => {
-    deleteDialog.value = true;
-};
+
 
 const showChangeStatusDialog = () => {
     changeStatusDialog.value = true;
 };
+
 
 const showActions = (event, item) => {
     selectedItem.value = item;
@@ -133,36 +121,15 @@ const search = async () => {
     getItems();
 };
 
-const getUsers = async (searchText = '') => {
-    try {
-        loadingUsers.value = true;
-        const params = { limit: 300 };
-        const payload = {
-            search: { value: searchText },
-            filters: [{ field: 'status', operator: '=', value: 'active' }]
-        };
-        const res = await userStore.search(payload, params);
-        users.value = res.data?.map((r) => ({
-            id: r.id,
-            name: r.name
-        }));
-    } finally {
-        loadingUsers.value = false;
-    }
-};
-
 const getItems = async () => {
     try {
         loading.value = true;
         const params = { ...pagination.getPageParams() };
-        const payload = {
-            ...sortFilters.getSortFilters(searchText.value),
-            includes: [{ relation: 'users' }]
-        };
+        const payload = sortFilters.getSortFilters(searchText.value);
         if (!payload.sort || payload.sort.length === 0) {
             payload.sort = [{ field: 'status', direction: 'desc' }];
         }
-        const res = await creditCardStore.search(payload, params);
+        const res = await menuStore.search(payload, params);
         items.value = res.data;
         totalRecords.value = res.meta.total;
     } finally {
@@ -170,36 +137,19 @@ const getItems = async () => {
     }
 };
 
-const removeUser = async (rowId, userId) => {
-    try {
-        busy.value = true;
-
-        const rowIndex = items.value.findIndex((item) => item.id === rowId);
-        if (rowIndex === -1) return;
-
-        const updatedRow = { ...items.value[rowIndex] };
-
-        updatedRow.users = updatedRow.users
-            .filter((u) => u.id !== userId)
-            .map((u) => u.id);
-
-        creditCardStore.update(rowId, updatedRow);
-        await getItems();
-        selectedItem.value = {};
-    } catch (error) {
-        console.error(error);
-    } finally {
-        busy.value = false;
-    }
-};
-
 const save = async () => {
     try {
+        if (items.value.length === 0) {
+            formData.value.is_default = true;
+        }
         busy.value = true;
         if (isEditMode.value) {
-            await creditCardStore.update(selectedItem.value.id, formData.value);
+            await menuStore.update(
+                selectedItem.value.id,
+                formData.value
+            );
         } else {
-            await creditCardStore.create(formData.value);
+            await menuStore.create(formData.value);
         }
         closeDialog();
         await getItems();
@@ -215,7 +165,7 @@ const deleteItem = async () => {
     try {
         loading.value = true;
         if (selectedItem.value) {
-            await creditCardStore.deleteItem(selectedItem.value.id);
+            await menuStore.deleteItem(selectedItem.value.id);
         }
         await getItems();
         selectedItem.value = {};
@@ -228,7 +178,20 @@ const changeStatus = async () => {
     try {
         loading.value = true;
         if (selectedItem.value) {
-            await creditCardStore.changeStatus(selectedItem.value.id);
+            await menuStore.changeStatus(selectedItem.value.id);
+        }
+        await getItems();
+        selectedItem.value = {};
+    } finally {
+        loading.value = false;
+    }
+};
+
+const makeDefault = async () => {
+    try {
+        loading.value = true;
+        if (selectedItem.value) {
+            await menuStore.makeDefault(selectedItem.value.id);
         }
         await getItems();
         selectedItem.value = {};
@@ -242,16 +205,11 @@ const changeStatus = async () => {
     <TitleHeader>
         <template #title>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold">Credit Cards</h1>
-                <p class="mt-2 text-sm sm:text-base mx-auto sm:mx-0 mb-0">
-                    These define company credit cards used by employees for
-                    non-reimbursable expenses.
-                </p>
+                <h1 class="text-2xl sm:text-3xl font-bold">Menu</h1>
             </div>
         </template>
         <template #actions>
             <Button
-                v-if="$ability.can('administration.create')"
                 label="Add New"
                 @click="openDialog('add')"
             />
@@ -278,30 +236,47 @@ const changeStatus = async () => {
                         />
                     </div>
                 </template>
-                <template #empty> No credit cards found. </template>
-                <Column :sortable="true" field="name" header="Name">
+                <template #empty> No menu found. </template>
+                <Column
+                    :sortable="true"
+                    field="name"
+                    header="Name"
+                >
                     <template #body="{ data }">
-                        <span
-                            v-tooltip.top="
-                                data.name?.length > 30 ? data.name : undefined
-                            "
-                        >
-                            {{ truncate(data.name, { length: 30 }) }}
-                        </span>
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <span
+                                v-tooltip.top="
+                                    data.name?.length > 30
+                                        ? data.name
+                                        : undefined
+                                "
+                            >
+                                {{ truncate(data.name, { length: 30 }) }}
+                            </span>
+                            <Tag
+                                severity="info"
+                                v-if="data.is_default"
+                                value="Default"
+                            />
+                        </div>
                     </template>
                 </Column>
 
-                <Column field="users" header="Authorized Users">
+                <Column
+                    :sortable="true"
+                    field="type"
+                    header="Type"
+                >
                     <template #body="{ data }">
-                        <div class="flex flex-wrap gap-2">
-                            <Chip
-                                v-for="user in data.users"
-                                :key="user.id"
-                                :label="user.name"
-                                removable
-                                @remove="removeUser(data.id, user.id)"
-                            />
-                        </div>
+                        <span
+                            v-tooltip.top="
+                                data.type?.length > 30
+                                    ? data.type
+                                    : undefined
+                            "
+                        >
+                            {{ truncate(data.type, { length: 30 }) }}
+                        </span>
                     </template>
                 </Column>
 
@@ -314,10 +289,6 @@ const changeStatus = async () => {
                 </Column>
 
                 <Column
-                    v-if="
-                        $ability.can('administration.edit') ||
-                        $ability.can('administration.delete')
-                    "
                     header="Actions"
                     class="flex justify-end"
                 >
@@ -345,25 +316,23 @@ const changeStatus = async () => {
     </Card>
 
     <BaseDialog
-        v-if="
-            $ability.can('administration.edit') ||
-            $ability.can('administration.create')
-        "
         v-model:visible="showDialog"
         @update:visible="onShow"
         :busy="busy"
         :isEditMode="isEditMode"
-        :header="isEditMode ? 'Edit Credit Card' : 'New Credit Card'"
+        :header="isEditMode ? 'Edit Contact Type' : 'New Contact Type'"
         :confirmLabel="isEditMode ? 'Update' : 'Save'"
         :formData="formData"
-        :initialData="isEditMode ? mapKeysToIds(selectedItem, ['users']) : null"
+        :initialData="isEditMode ? selectedItem : null"
         :enableDirtyCheck="true"
         :confirmBeforeSave="isEditMode ? true : false"
         @cancel="closeDialog"
         @confirm="save"
     >
         <div class="mb-3 col-span-12">
-            <label class="block required mb-3" for="name">Name</label>
+            <label class="block required mb-3" for="name"
+                >Contact Type Name</label
+            >
             <InputField
                 variant="text"
                 id="name"
@@ -375,24 +344,20 @@ const changeStatus = async () => {
         </div>
 
         <div class="mb-3 col-span-12">
-            <label class="block mb-3">Authorized Users</label>
-            <ApiMultiselect
-                id="users"
-                placeholder="Select"
+            <label class="block required mb-3" for="type"
+                >Type</label
+            >
+            <InputField
+                variant="text"
+                id="type"
+                v-model="formData.type"
                 class="w-full"
-                showClear
-                filter
-                :loading="loadingUsers"
-                @search="getUsers"
-                v-model="formData.users"
-                :options="users"
-                optionLabel="name"
-                optionValue="id"
-                :disabled="busy || loadingUsers"
+                @keyup.enter="save"
+                :disabled="busy"
             />
         </div>
 
-        <div class="col-span-12">
+        <div class="mb-3 col-span-12">
             <label class="block mb-3">Status</label>
             <div class="flex items-center gap-3">
                 <InputField
@@ -409,21 +374,27 @@ const changeStatus = async () => {
     </BaseDialog>
 
     <Confirmation
-        v-if="$ability.can('administration.delete')"
         v-model="deleteDialog"
         variant="danger"
-        header="Delete Credit Card"
-        content="Are you sure you want to delete this credit card?"
+        header="Delete Contact Type"
+        content="Are you sure you want to delete this contact type?"
         @confirm="deleteItem"
     />
 
     <Confirmation
-        v-if="$ability.can('administration.edit')"
         v-model="changeStatusDialog"
         variant="danger"
         :header="isItemActive ? 'Make Inactive' : 'Make Active'"
-        :content="`Are you sure you want to make this credit card ${isItemActive ? 'inactive' : 'active'}?`"
+        :content="`Are you sure you want to make this contact type ${isItemActive ? 'inactive' : 'active'}?`"
         :confirmButtonText="isItemActive ? 'Make Inactive' : 'Make Active'"
         @confirm="changeStatus"
+    />
+
+    <Confirmation
+        v-model="defaultDialog"
+        variant="success"
+        :header="`Set ${selectedItem?.name} as Default`"
+        :content="`Are you sure you want to make this contact type default?`"
+        @confirm="makeDefault"
     />
 </template>

@@ -23,7 +23,21 @@ export default [
                 name: 'Dashboard',
                 meta: { breadcrumb: [{ label: 'Dashboard' }] },
                 component: () => import('@/views/dashboards/Dashboard.vue')
-            }
+            },
+              {
+                path: 'menu',
+                name: 'Menu',
+                component: () =>
+                    import(
+                        '@/views/menu/index.vue'
+                    ),
+                meta: {
+                    breadcrumb: [
+                        { label: 'Dashboard' },
+                        { label: 'Menu' }
+                    ],
+                }
+            },
         ]
     },
     {
