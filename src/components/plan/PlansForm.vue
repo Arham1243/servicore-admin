@@ -45,14 +45,14 @@ onBeforeMount(async () => {
     }
 });
 
-onBeforeRouteLeave((to, from, next) => {
-    if (isDirty.value) {
-        showUnsavedDialog.value = true;
-        nextRoute = next;
-    } else {
-        next();
-    }
-});
+// onBeforeRouteLeave((to, from, next) => {
+//     if (isDirty.value) {
+//         showUnsavedDialog.value = true;
+//         nextRoute = next;
+//     } else {
+//         next();
+//     }
+// });
 
 const loadMenus = async () => {
     try {
@@ -234,7 +234,7 @@ function confirmDiscard() {
         nextRoute = null;
         go();
     } else {
-        goBack();
+        getItem();
     }
 }
 
