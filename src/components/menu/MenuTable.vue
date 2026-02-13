@@ -3,7 +3,7 @@ import { computed, onBeforeMount, ref } from 'vue';
 import { useMenuStore } from '@/stores';
 import { useGlobalStore } from '@/stores';
 import { PaginationOptions, SortFilterOptions } from '@/config';
-import { truncate } from 'lodash-es';
+import { includes, truncate } from 'lodash-es';
 import { useHelpers } from '@/composables';
 
 const helpers = useHelpers();
@@ -22,15 +22,19 @@ const isEditMode = ref(false);
 const busy = ref(false);
 const totalRecords = ref();
 const showDialog = ref(false);
-const deleteDialog = ref(false);
 const changeStatusDialog = ref(false);
-const defaultDialog = ref(false);
 const formData = ref({
     name: '',
     type: '',
     is_default: false,
     status: true
 });
+
+const typeOptions = [
+    { label: 'Limit Count', value: 'limit_count' },
+    { label: 'Enable/Disable', value: 'enable_disable' },
+];
+
 
 onBeforeMount(async () => {
     await getItems();
@@ -78,6 +82,7 @@ const onShow = () => {
 const resetForm = () => {
     formData.value.name = '';
     formData.value.type = '';
+    formData.value.parent_name = '';
     formData.value.status = true;
     formData.value.is_default = false;
     globalStore.clearErrors();
@@ -87,6 +92,7 @@ const editItem = () => {
     resetForm();
     formData.value.name = selectedItem.value.name;
     formData.value.type = selectedItem.value.type;
+    formData.value.parent_name = selectedItem.value.parent_name;
     formData.value.is_default = selectedItem.value.is_default;
     formData.value.status = selectedItem.value.status;
     openDialog('edit');
@@ -125,9 +131,9 @@ const getItems = async () => {
     try {
         loading.value = true;
         const params = { ...pagination.getPageParams() };
-        const payload = sortFilters.getSortFilters(searchText.value);
-        if (!payload.sort || payload.sort.length === 0) {
-            payload.sort = [{ field: 'status', direction: 'desc' }];
+        const payload = {...sortFilters.getSortFilters(searchText.value),includes:[{relation:'parent'}]};
+          if (!payload.sort || payload.sort.length === 0) {
+            payload.sort = [{ field: 'name', direction: 'asc' }];
         }
         const res = await menuStore.search(payload, params);
         items.value = res.data;
@@ -139,14 +145,11 @@ const getItems = async () => {
 
 const save = async () => {
     try {
-        if (items.value.length === 0) {
-            formData.value.is_default = true;
-        }
         busy.value = true;
         if (isEditMode.value) {
             await menuStore.update(
                 selectedItem.value.id,
-                formData.value
+                payload
             );
         } else {
             await menuStore.create(formData.value);
@@ -161,18 +164,7 @@ const save = async () => {
     }
 };
 
-const deleteItem = async () => {
-    try {
-        loading.value = true;
-        if (selectedItem.value) {
-            await menuStore.deleteItem(selectedItem.value.id);
-        }
-        await getItems();
-        selectedItem.value = {};
-    } finally {
-        loading.value = false;
-    }
-};
+
 
 const changeStatus = async () => {
     try {
@@ -187,18 +179,15 @@ const changeStatus = async () => {
     }
 };
 
-const makeDefault = async () => {
-    try {
-        loading.value = true;
-        if (selectedItem.value) {
-            await menuStore.makeDefault(selectedItem.value.id);
-        }
-        await getItems();
-        selectedItem.value = {};
-    } finally {
-        loading.value = false;
-    }
+const formatType = (type) => {
+    if (!type) return '--';
+
+    return type
+        .replace('_', ' / ')   // enable_disable → enable / disable
+        .replace(/\b\w/g, c => c.toUpperCase()); // capitalize
 };
+
+
 </script>
 
 <template>
@@ -208,12 +197,7 @@ const makeDefault = async () => {
                 <h1 class="text-2xl sm:text-3xl font-bold">Menu</h1>
             </div>
         </template>
-        <template #actions>
-            <Button
-                label="Add New"
-                @click="openDialog('add')"
-            />
-        </template>
+       
     </TitleHeader>
 
     <Card class="py-3 px-2">
@@ -241,26 +225,13 @@ const makeDefault = async () => {
                     :sortable="true"
                     field="name"
                     header="Name"
-                >
-                    <template #body="{ data }">
-                        <div class="flex items-center gap-4 flex-wrap">
-                            <span
-                                v-tooltip.top="
-                                    data.name?.length > 30
-                                        ? data.name
-                                        : undefined
-                                "
-                            >
-                                {{ truncate(data.name, { length: 30 }) }}
-                            </span>
-                            <Tag
-                                severity="info"
-                                v-if="data.is_default"
-                                value="Default"
-                            />
-                        </div>
-                    </template>
-                </Column>
+                />
+
+                <Column
+                    field="parent.name"
+                    header="Parent"
+                />
+
 
                 <Column
                     :sortable="true"
@@ -268,15 +239,7 @@ const makeDefault = async () => {
                     header="Type"
                 >
                     <template #body="{ data }">
-                        <span
-                            v-tooltip.top="
-                                data.type?.length > 30
-                                    ? data.type
-                                    : undefined
-                            "
-                        >
-                            {{ truncate(data.type, { length: 30 }) }}
-                        </span>
+                       {{ formatType(data.type) }}
                     </template>
                 </Column>
 
@@ -320,7 +283,7 @@ const makeDefault = async () => {
         @update:visible="onShow"
         :busy="busy"
         :isEditMode="isEditMode"
-        :header="isEditMode ? 'Edit Contact Type' : 'New Contact Type'"
+        :header="isEditMode ? 'Edit Menu' : 'New Menu'"
         :confirmLabel="isEditMode ? 'Update' : 'Save'"
         :formData="formData"
         :initialData="isEditMode ? selectedItem : null"
@@ -331,7 +294,7 @@ const makeDefault = async () => {
     >
         <div class="mb-3 col-span-12">
             <label class="block required mb-3" for="name"
-                >Contact Type Name</label
+                >Menu Name</label
             >
             <InputField
                 variant="text"
@@ -344,18 +307,22 @@ const makeDefault = async () => {
         </div>
 
         <div class="mb-3 col-span-12">
-            <label class="block required mb-3" for="type"
-                >Type</label
-            >
-            <InputField
-                variant="text"
+            <label class="block required mb-3" for="type">
+                Type
+            </label>
+
+            <Dropdown
                 id="type"
                 v-model="formData.type"
+                :options="typeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select Type"
                 class="w-full"
-                @keyup.enter="save"
                 :disabled="busy"
             />
         </div>
+
 
         <div class="mb-3 col-span-12">
             <label class="block mb-3">Status</label>
@@ -373,28 +340,15 @@ const makeDefault = async () => {
         </div>
     </BaseDialog>
 
-    <Confirmation
-        v-model="deleteDialog"
-        variant="danger"
-        header="Delete Contact Type"
-        content="Are you sure you want to delete this contact type?"
-        @confirm="deleteItem"
-    />
 
     <Confirmation
         v-model="changeStatusDialog"
         variant="danger"
         :header="isItemActive ? 'Make Inactive' : 'Make Active'"
-        :content="`Are you sure you want to make this contact type ${isItemActive ? 'inactive' : 'active'}?`"
+        :content="`Are you sure you want to make this menu ${isItemActive ? 'inactive' : 'active'}?`"
         :confirmButtonText="isItemActive ? 'Make Inactive' : 'Make Active'"
         @confirm="changeStatus"
     />
 
-    <Confirmation
-        v-model="defaultDialog"
-        variant="success"
-        :header="`Set ${selectedItem?.name} as Default`"
-        :content="`Are you sure you want to make this contact type default?`"
-        @confirm="makeDefault"
-    />
+    
 </template>

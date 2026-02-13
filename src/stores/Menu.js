@@ -15,8 +15,8 @@ export const useMenuStore = defineStore('MenuStore', () => {
         return globalStore.actionWrapper(async () => {
             const res = await MenuService.create(payload);
             globalStore.showSuccess(
-                'Contact Type created',
-                'Contact Type created successfully'
+                'Menu created',
+                'Menu created successfully'
             );
             return res.data;
         });
@@ -25,8 +25,8 @@ export const useMenuStore = defineStore('MenuStore', () => {
         return globalStore.actionWrapper(async () => {
             const res = await MenuService.update(id, payload);
             globalStore.showSuccess(
-                'Contact Type updated',
-                'Contact Type updated successfully'
+                'Menu updated',
+                'Menu updated successfully'
             );
             return res.data;
         });
@@ -35,8 +35,8 @@ export const useMenuStore = defineStore('MenuStore', () => {
         return globalStore.actionWrapper(async () => {
             const res = await MenuService.changeStatus(id, payload);
             globalStore.showSuccess(
-                'Contact Type status updated',
-                'Contact Type status updated successfully'
+                'Menu updated',
+                'Menu updated successfully'
             );
             return res.data;
         });
