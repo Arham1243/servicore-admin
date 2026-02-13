@@ -45,6 +45,6 @@ export const useMenuStore = defineStore('MenuStore', () => {
         changeStatus,
         search,
         create,
-        update,
+        update
     };
 });

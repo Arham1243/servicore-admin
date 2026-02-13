@@ -147,7 +147,19 @@ const formatCurrency = (value) => {
                     </div>
                 </template>
                 <template #empty> No plans found. </template>
-                <Column :sortable="true" field="name" header="Name" />
+                <Column :sortable="true" field="name" header="Name">
+                    <template #body="{ data }">
+                        <router-link
+                            :to="{
+                                name: 'EditPlan',
+                                params: { id: data.id }
+                            }"
+                            class="text-blue-600 hover:text-blue-800 cursor-pointer"
+                        >
+                            {{ data.name }}
+                        </router-link>
+                    </template>
+                </Column>
 
                 <Column field="description" header="Description">
                     <template #body="{ data }">
