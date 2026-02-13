@@ -32,9 +32,8 @@ const formData = ref({
 
 const typeOptions = [
     { label: 'Limit Count', value: 'limit_count' },
-    { label: 'Enable/Disable', value: 'enable_disable' },
+    { label: 'Enable/Disable', value: 'enable_disable' }
 ];
-
 
 onBeforeMount(async () => {
     await getItems();
@@ -47,14 +46,13 @@ const menuItems = computed(() => {
         {
             label: 'Edit',
             icon: 'pi pi-pencil',
-            command: () => editItem(),
+            command: () => editItem()
         },
         {
             label: isItemActive.value ? 'Make Inactive' : 'Make Active',
             icon: isItemActive.value ? 'pi pi-times' : 'pi pi-check',
-            command: () => showChangeStatusDialog(),
-        },
-     
+            command: () => showChangeStatusDialog()
+        }
     ].filter(Boolean);
 
     return allMenuItems;
@@ -63,7 +61,6 @@ const menuItems = computed(() => {
 const isItemActive = computed(() => {
     return selectedItem.value && selectedItem.value.status;
 });
-
 
 const openDialog = (mode = 'add') => {
     isEditMode.value = mode === 'edit';
@@ -98,12 +95,9 @@ const editItem = () => {
     openDialog('edit');
 };
 
-
-
 const showChangeStatusDialog = () => {
     changeStatusDialog.value = true;
 };
-
 
 const showActions = (event, item) => {
     selectedItem.value = item;
@@ -131,8 +125,11 @@ const getItems = async () => {
     try {
         loading.value = true;
         const params = { ...pagination.getPageParams() };
-        const payload = {...sortFilters.getSortFilters(searchText.value),includes:[{relation:'parent'}]};
-          if (!payload.sort || payload.sort.length === 0) {
+        const payload = {
+            ...sortFilters.getSortFilters(searchText.value),
+            includes: [{ relation: 'parent' }]
+        };
+        if (!payload.sort || payload.sort.length === 0) {
             payload.sort = [{ field: 'name', direction: 'asc' }];
         }
         const res = await menuStore.search(payload, params);
@@ -147,10 +144,7 @@ const save = async () => {
     try {
         busy.value = true;
         if (isEditMode.value) {
-            await menuStore.update(
-                selectedItem.value.id,
-                payload
-            );
+            await menuStore.update(selectedItem.value.id, formData.value);
         } else {
             await menuStore.create(formData.value);
         }
@@ -163,8 +157,6 @@ const save = async () => {
         busy.value = false;
     }
 };
-
-
 
 const changeStatus = async () => {
     try {
@@ -183,11 +175,9 @@ const formatType = (type) => {
     if (!type) return '--';
 
     return type
-        .replace('_', ' / ')   // enable_disable → enable / disable
-        .replace(/\b\w/g, c => c.toUpperCase()); // capitalize
+        .replace('_', ' / ') // enable_disable → enable / disable
+        .replace(/\b\w/g, (c) => c.toUpperCase()); // capitalize
 };
-
-
 </script>
 
 <template>
@@ -197,7 +187,6 @@ const formatType = (type) => {
                 <h1 class="text-2xl sm:text-3xl font-bold">Menu</h1>
             </div>
         </template>
-       
     </TitleHeader>
 
     <Card class="py-3 px-2">
@@ -221,25 +210,22 @@ const formatType = (type) => {
                     </div>
                 </template>
                 <template #empty> No menu found. </template>
-                <Column
-                    :sortable="true"
-                    field="name"
-                    header="Name"
-                />
-
-                <Column
-                    field="parent.name"
-                    header="Parent"
-                />
-
-
-                <Column
-                    :sortable="true"
-                    field="type"
-                    header="Type"
-                >
+                <Column :sortable="true" field="name" header="Name">
                     <template #body="{ data }">
-                       {{ formatType(data.type) }}
+                        <span
+                            @click="editItem((selectedItem = data))"
+                            class="text-blue-600 hover:text-blue-800 cursor-pointer"
+                        >
+                            {{ data.name }}
+                        </span>
+                    </template>
+                </Column>
+
+                <Column field="parent.name" header="Parent" />
+
+                <Column :sortable="true" field="type" header="Type">
+                    <template #body="{ data }">
+                        {{ formatType(data.type) }}
                     </template>
                 </Column>
 
@@ -251,10 +237,7 @@ const formatType = (type) => {
                     </template>
                 </Column>
 
-                <Column
-                    header="Actions"
-                    class="flex justify-end"
-                >
+                <Column header="Actions" class="flex justify-end">
                     <template #body="{ data }">
                         <Button
                             class="!px-3 !py-2"
@@ -288,14 +271,11 @@ const formatType = (type) => {
         :formData="formData"
         :initialData="isEditMode ? selectedItem : null"
         :enableDirtyCheck="true"
-        :confirmBeforeSave="isEditMode ? true : false"
         @cancel="closeDialog"
         @confirm="save"
     >
         <div class="mb-3 col-span-12">
-            <label class="block required mb-3" for="name"
-                >Menu Name</label
-            >
+            <label class="block required mb-3" for="name">Menu Name</label>
             <InputField
                 variant="text"
                 id="name"
@@ -307,9 +287,7 @@ const formatType = (type) => {
         </div>
 
         <div class="mb-3 col-span-12">
-            <label class="block required mb-3" for="type">
-                Type
-            </label>
+            <label class="block required mb-3" for="type"> Type </label>
 
             <Dropdown
                 id="type"
@@ -322,7 +300,6 @@ const formatType = (type) => {
                 :disabled="busy"
             />
         </div>
-
 
         <div class="mb-3 col-span-12">
             <label class="block mb-3">Status</label>
@@ -340,7 +317,6 @@ const formatType = (type) => {
         </div>
     </BaseDialog>
 
-
     <Confirmation
         v-model="changeStatusDialog"
         variant="danger"
@@ -349,6 +325,4 @@ const formatType = (type) => {
         :confirmButtonText="isItemActive ? 'Make Inactive' : 'Make Active'"
         @confirm="changeStatus"
     />
-
-    
 </template>
