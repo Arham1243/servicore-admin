@@ -427,7 +427,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.00"
+                            :min="0.01"
                         />
                     </div>
 
@@ -445,7 +445,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.00"
+                            :min="0.01"
                         />
                     </div>
 
@@ -463,7 +463,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.00"
+                            :min="0.01"
                         />
                     </div>
 
@@ -481,13 +481,16 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.00"
+                            :min="0.01"
                         />
                     </div>
 
                     <div
                         class="col-span-12 sm:col-span-6"
-                        v-if="!sessionStore.freeTrialPlanAvailable"
+                        v-if="
+                            formData.trial_days > 0 ||
+                            !sessionStore.freeTrialPlanAvailable
+                        "
                     >
                         <label class="block mb-2">Trial Days</label>
                         <InputField
