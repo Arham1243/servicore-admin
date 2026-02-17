@@ -17,9 +17,6 @@ const credentials = ref({
     remember_me: false
 });
 
-const showEula = ref(false);
-const showPrivacy = ref(false);
-
 onBeforeMount(() => {
     globalStore.clearErrors();
 });
