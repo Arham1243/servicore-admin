@@ -24,3 +24,7 @@ export const show = (id) => {
 export const changeStatus = (id, payload) => {
     return AxiosService.post(`${BASE_URL}/plans/${id}/change-status`, payload);
 };
+
+export const deleteItem = (id) => {
+    return AxiosService.delete(`${BASE_URL}/plans/${id}`);
+};

@@ -11,6 +11,7 @@ const pagination = new PaginationOptions();
 const sortFilters = new SortFilterOptions();
 const searchText = ref('');
 const menu = ref();
+const deleteDialog = ref(false);
 const selectedItem = ref(null);
 const loading = ref(false);
 const items = ref([]);
@@ -34,11 +35,20 @@ const menuItems = computed(() => {
             label: isItemActive.value ? 'Make Inactive' : 'Make Active',
             icon: isItemActive.value ? 'pi pi-times' : 'pi pi-check',
             command: () => showChangeStatusDialog()
+        },
+        {
+            label: 'Delete',
+            icon: 'pi pi-trash',
+            command: () => showDeleteDialog()
         }
     ].filter(Boolean);
 
     return allMenuItems;
 });
+
+const showDeleteDialog = () => {
+    deleteDialog.value = true;
+};
 
 const isItemActive = computed(() => {
     return selectedItem.value && selectedItem.value.status;
@@ -95,6 +105,19 @@ const getItems = async () => {
     }
 };
 
+const deleteItem = async () => {
+    try {
+        loading.value = true;
+        if (selectedItem.value) {
+            await planStore.deleteItem(selectedItem.value.id);
+        }
+        await getItems();
+        selectedItem.value = {};
+    } finally {
+        loading.value = false;
+    }
+};
+
 const changeStatus = async () => {
     try {
         loading.value = true;
@@ -129,6 +152,7 @@ const formatCurrency = (value) => {
     <Card class="py-3 px-2">
         <template #content>
             <BaseTable
+                :reorderableColumns="true"
                 :value="items"
                 :page="pagination.page"
                 :rows="pagination.limit"
@@ -147,7 +171,12 @@ const formatCurrency = (value) => {
                     </div>
                 </template>
                 <template #empty> No plans found. </template>
-                <Column :sortable="true" field="name" header="Name">
+                <Column
+                    columnKey="name"
+                    :sortable="true"
+                    field="name"
+                    header="Name"
+                >
                     <template #body="{ data }">
                         <router-link
                             :to="{
@@ -156,18 +185,31 @@ const formatCurrency = (value) => {
                             }"
                             class="text-blue-600 hover:text-blue-800 cursor-pointer"
                         >
-                            {{ data.name }}
+                            <div class="flex items-center gap-4 flex-wrap">
+                                {{ data.name }}
+                                <Tag
+                                    severity="info"
+                                    class="whitespace-nowrap"
+                                    v-if="data.trial_days > 0"
+                                    value="Free Trial"
+                                />
+                            </div>
                         </router-link>
                     </template>
                 </Column>
 
-                <Column field="description" header="Description">
+                <Column
+                    columnKey="description"
+                    field="description"
+                    header="Description"
+                >
                     <template #body="{ data }">
-                        {{ data.description || '--' }}
+                        {{ data.description || '-' }}
                     </template>
                 </Column>
 
                 <Column
+                    columnKey="monthly_sale_price"
                     :sortable="true"
                     field="monthly_sale_price"
                     header="Monthly Sale Price"
@@ -178,6 +220,7 @@ const formatCurrency = (value) => {
                 </Column>
 
                 <Column
+                    columnKey="monthly_cost_price"
                     :sortable="true"
                     field="monthly_cost_price"
                     header="Monthly Cost Price"
@@ -188,6 +231,7 @@ const formatCurrency = (value) => {
                 </Column>
 
                 <Column
+                    columnKey="yearly_sale_price"
                     :sortable="true"
                     field="yearly_sale_price"
                     header="Yearly Sale Price"
@@ -198,6 +242,7 @@ const formatCurrency = (value) => {
                 </Column>
 
                 <Column
+                    columnKey="yearly_cost_price"
                     :sortable="true"
                     field="yearly_cost_price"
                     header="Yearly Cost Price"
@@ -207,13 +252,23 @@ const formatCurrency = (value) => {
                     </template>
                 </Column>
 
-                <Column :sortable="true" field="trial_days" header="Trial Days">
+                <Column
+                    columnKey="trial_days"
+                    :sortable="true"
+                    field="trial_days"
+                    header="Trial Days"
+                >
                     <template #body="{ data }">
                         {{ data.trial_days ?? '--' }}
                     </template>
                 </Column>
 
-                <Column header="Status" :sortable="true" field="status">
+                <Column
+                    columnKey="status"
+                    header="Status"
+                    :sortable="true"
+                    field="status"
+                >
                     <template #body="{ data }">
                         <StatusTag
                             :status="data.status ? 'active' : 'inactive'"
@@ -221,7 +276,11 @@ const formatCurrency = (value) => {
                     </template>
                 </Column>
 
-                <Column header="Actions" class="flex justify-end">
+                <Column
+                    columnKey="actions"
+                    header="Actions"
+                    class="flex justify-end"
+                >
                     <template #body="{ data }">
                         <Button
                             class="!px-3 !py-2"
@@ -252,5 +311,13 @@ const formatCurrency = (value) => {
         :content="`Are you sure you want to make this plan ${isItemActive ? 'inactive' : 'active'}?`"
         :confirmButtonText="isItemActive ? 'Make Inactive' : 'Make Active'"
         @confirm="changeStatus"
+    />
+
+    <Confirmation
+        v-model="deleteDialog"
+        variant="danger"
+        header="Delete Plan"
+        content="Are you sure you want to delete this plan?"
+        @confirm="deleteItem"
     />
 </template>

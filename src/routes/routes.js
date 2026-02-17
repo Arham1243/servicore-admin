@@ -47,7 +47,7 @@ export default [
                 meta: {
                     breadcrumb: [
                         { label: 'Dashboard' },
-                        { label: 'Plans', to: '/plans' },
+                        { label: 'Plans', route: '/plans' },
                         { label: 'Add Plan' }
                     ]
                 }
@@ -59,7 +59,7 @@ export default [
                 meta: {
                     breadcrumb: [
                         { label: 'Dashboard' },
-                        { label: 'Plans', to: '/plans' },
+                        { label: 'Plans', route: '/plans' },
                         { label: 'Edit Plan' }
                     ]
                 }

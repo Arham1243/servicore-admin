@@ -1,4 +1,11 @@
 <script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+function navigatePlans(name) {
+    router.push(name);
+}
 </script>
 
 <template>
@@ -16,7 +23,7 @@
                     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
                 >
                     <!-- Add Timesheet -->
-                    <div class="no-underline">
+                    <div class="no-underline" @click="navigatePlans('Plans')">
                         <div
                             class="p-6 border-2 border-surface-200 dark:border-surface-700 rounded-lg hover:border-primary hover:bg-surface-50 dark:hover:bg-surface-800 transition-all cursor-pointer text-center"
                         >
@@ -36,7 +43,7 @@
                         </div>
                     </div>
 
-                    <div class="no-underline">
+                    <div class="no-underline" @click="navigatePlans('Menu')">
                         <div
                             class="p-6 border-2 border-surface-200 dark:border-surface-700 rounded-lg hover:border-primary hover:bg-surface-50 dark:hover:bg-surface-800 transition-all cursor-pointer text-center"
                         >
@@ -46,12 +53,12 @@
                             <div
                                 class="font-semibold text-surface-900 dark:text-surface-0 mb-1"
                             >
-                                Manage Users
+                                Manage Menu
                             </div>
                             <div
                                 class="text-sm text-surface-600 dark:text-surface-400"
                             >
-                                Manage all users
+                                Manage all menu
                             </div>
                         </div>
                     </div>

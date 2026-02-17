@@ -4,10 +4,10 @@ import { useCookies } from 'vue3-cookies';
 
 import { AuthService } from '@/services';
 export const useSessionStore = defineStore('SessionStore', () => {
-
     const { cookies } = useCookies();
     const user = ref(null);
     const intendedRoute = ref(sessionStorage.getItem('intendedRoute'));
+    const freeTrialPlanAvailable = ref(false);
 
     const startUserSession = (data) => {
         const date = new Date();
@@ -29,7 +29,6 @@ export const useSessionStore = defineStore('SessionStore', () => {
         cookies.remove('tmb_cookie', null);
         sessionStorage.removeItem('email');
         user.value = null;
-
     };
 
     const setCookie = (value) => {
@@ -51,7 +50,8 @@ export const useSessionStore = defineStore('SessionStore', () => {
     const me = async () => {
         try {
             const res = (await AuthService.me()).data;
-            user.value = res.data
+            user.value = res.data;
+            freeTrialPlanAvailable.value = res.free_trial_plan_available;
             return user.value;
         } catch (error) {
             throw error;
@@ -75,7 +75,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         clearSessionState,
         me,
         user,
-        
+        freeTrialPlanAvailable,
 
         setEmail,
         setCookie,

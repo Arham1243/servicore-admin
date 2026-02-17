@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onBeforeMount, computed } from 'vue';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
-import { usePlanStore, useGlobalStore } from '@/stores';
+import { useRoute, useRouter } from 'vue-router';
+import { usePlanStore, useGlobalStore, useSessionStore } from '@/stores';
 import { useMenuStore } from '@/stores';
 import { useFormDirty } from '@/composables/useFormDirty';
 
@@ -14,6 +14,7 @@ const route = useRoute();
 const planStore = usePlanStore();
 const menuStore = useMenuStore();
 const globalStore = useGlobalStore();
+const sessionStore = useSessionStore();
 const busy = ref(false);
 const loading = ref(false);
 const planId = ref(route.params.id);
@@ -484,7 +485,10 @@ const getItem = async () => {
                         />
                     </div>
 
-                    <div class="col-span-12 sm:col-span-6">
+                    <div
+                        class="col-span-12 sm:col-span-6"
+                        v-if="!sessionStore.freeTrialPlanAvailable"
+                    >
                         <label class="block mb-2">Trial Days</label>
                         <InputField
                             :disabled="busy"

@@ -192,6 +192,7 @@ const formatType = (type) => {
     <Card class="py-3 px-2">
         <template #content>
             <BaseTable
+                :reorderableColumns="true"
                 :value="items"
                 :page="pagination.page"
                 :rows="pagination.limit"
@@ -210,7 +211,12 @@ const formatType = (type) => {
                     </div>
                 </template>
                 <template #empty> No menu found. </template>
-                <Column :sortable="true" field="name" header="Name">
+                <Column
+                    columnKey="name"
+                    :sortable="true"
+                    field="name"
+                    header="Name"
+                >
                     <template #body="{ data }">
                         <span
                             @click="editItem((selectedItem = data))"
@@ -221,15 +227,29 @@ const formatType = (type) => {
                     </template>
                 </Column>
 
-                <Column field="parent.name" header="Parent" />
+                <Column
+                    columnKey="parent.name"
+                    field="parent.name"
+                    header="Parent"
+                />
 
-                <Column :sortable="true" field="type" header="Type">
+                <Column
+                    columnKey="type"
+                    :sortable="true"
+                    field="type"
+                    header="Type"
+                >
                     <template #body="{ data }">
                         {{ formatType(data.type) }}
                     </template>
                 </Column>
 
-                <Column header="Status" :sortable="true" field="status">
+                <Column
+                    columnKey="status"
+                    header="Status"
+                    :sortable="true"
+                    field="status"
+                >
                     <template #body="{ data }">
                         <StatusTag
                             :status="data.status ? 'active' : 'inactive'"
@@ -237,7 +257,11 @@ const formatType = (type) => {
                     </template>
                 </Column>
 
-                <Column header="Actions" class="flex justify-end">
+                <Column
+                    columnKey="actions"
+                    header="Actions"
+                    class="flex justify-end"
+                >
                     <template #body="{ data }">
                         <Button
                             class="!px-3 !py-2"

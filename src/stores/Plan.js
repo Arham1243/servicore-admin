@@ -37,6 +37,16 @@ export const usePlanStore = defineStore('PlanStore', () => {
             return res.data;
         });
     };
+    const deleteItem = async (id) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await PlanService.deleteItem(id);
+            globalStore.showSuccess(
+                'Plan deleted',
+                'Plan deleted successfully'
+            );
+            return res.data;
+        });
+    };
     const changeStatus = (id, payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await PlanService.changeStatus(id, payload);
@@ -52,6 +62,7 @@ export const usePlanStore = defineStore('PlanStore', () => {
         search,
         create,
         update,
-        show
+        show,
+        deleteItem
     };
 });
