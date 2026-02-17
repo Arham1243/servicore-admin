@@ -1,7 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { useAuthStore, useSessionStore } from '@/stores';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import OtpInput from 'vue3-otp-input';
 import { getDeviceFingerprint, getDeviceInfo } from '@/utils/deviceFingerprint';
@@ -18,6 +18,12 @@ const otpKey = ref('');
 const code = ref('');
 const session = ref(route.query.session);
 
+watch(code, (newValue) => {
+    if (newValue.length === 6 && !loading.value) {
+        verifyCode();
+    }
+});
+
 const verificationMessage = computed(() => {
     const contactInfo = sessionStore.getEmail();
     return `You should have received an email with OTP code at ${contactInfo}`;
@@ -26,10 +32,6 @@ const verificationMessage = computed(() => {
 const isCodeValid = computed(() => {
     return code.value.length === 6;
 });
-
-const pushRoute = (name, query = {}) => {
-    router.push({ name, query });
-};
 
 const verifyCode = async () => {
     try {
