@@ -427,7 +427,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.01"
+                            :min="0.00"
                         />
                     </div>
 
@@ -445,7 +445,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.01"
+                            :min="0.00"
                         />
                     </div>
 
@@ -463,7 +463,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.01"
+                            :min="0.00"
                         />
                     </div>
 
@@ -481,7 +481,7 @@ const getItem = async () => {
                             :minFractionDigits="2"
                             @keyup.enter="save"
                             prefix="$"
-                            :min="0.01"
+                            :min="0.00"
                         />
                     </div>
 
