@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router';
 import { useAuthStore, useGlobalStore, useSessionStore } from '@/stores';
 import { RecaptchaV2 } from 'vue3-recaptcha-v2';
 import { getDeviceFingerprint, getDeviceInfo } from '@/utils/deviceFingerprint';
-const APP_URL = `${import.meta.env.VITE_APP_URL}`;
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -150,59 +149,6 @@ const handleLoadCallback = (token) => {
                 :loading="loading"
                 type="submit"
             />
-
-            <div
-                class="text-center text-sm font-base text-gray-500 mt-3 leading-6"
-            >
-                By signing in, you accept the
-                <span
-                    @click="showEula = true"
-                    class="font-semibold cursor-pointer primary-text"
-                >
-                    End-User License Agreement
-                </span>
-                and
-                <span
-                    @click="showPrivacy = true"
-                    class="font-semibold cursor-pointer primary-text"
-                >
-                    Privacy Policy
-                </span>
-            </div>
         </form>
     </div>
-
-    <!-- EULA Dialog -->
-    <Dialog
-        v-model:visible="showEula"
-        modal
-        header="End-User License Agreement"
-        :style="{ width: '50vw', maxHeight: '80vh' }"
-    >
-        <iframe
-            :src="`${APP_URL}/eula`"
-            class="w-full h-[50vh]"
-            frameborder="0"
-        ></iframe>
-        <template #footer>
-            <Button label="Close" @click="showEula = false" />
-        </template>
-    </Dialog>
-
-    <!-- Privacy Policy Dialog -->
-    <Dialog
-        v-model:visible="showPrivacy"
-        modal
-        header="Privacy Policy"
-        :style="{ width: '50vw', maxHeight: '80vh' }"
-    >
-        <iframe
-            :src="`${APP_URL}/privacy-policy`"
-            class="w-full h-[50vh]"
-            frameborder="0"
-        ></iframe>
-        <template #footer>
-            <Button label="Close" @click="showPrivacy = false" />
-        </template>
-    </Dialog>
 </template>
