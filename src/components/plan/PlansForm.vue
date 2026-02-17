@@ -24,14 +24,20 @@ let nextRoute = null;
 
 const allMenus = ref([]);
 const menuSelections = ref({});
-
+const employeeRanges = [
+    { label: '1-5', value: '1-5' },
+    { label: '6-10', value: '6-10' },
+    { label: '11-15', value: '11-15' },
+    { label: '16-20', value: '16-20' },
+];
 const formData = ref({
     name: '',
     description: '',
-    monthly_sale_price: null,
-    monthly_cost_price: null,
-    yearly_sale_price: null,
-    yearly_cost_price: null,
+    no_of_employees: null,
+    // monthly_sale_price: null,
+    price: null,
+    discount: null,
+    // yearly_cost_price: null,
     trial_days: null,
     status: true,
     menu_limits: []
@@ -250,10 +256,11 @@ async function resetForm() {
         Object.assign(formData.value, {
             name: '',
             description: '',
-            monthly_sale_price: null,
-            monthly_cost_price: null,
-            yearly_sale_price: null,
-            yearly_cost_price: null,
+            // monthly_sale_price: null,
+            price: null,
+            discount: null,
+            no_of_employees: null,
+            // yearly_cost_price: null,
             trial_days: null,
             status: true,
             menu_limits: []
@@ -291,10 +298,11 @@ const getItem = async () => {
         formData.value = {
             name: plan.name || '',
             description: plan.description || '',
-            monthly_sale_price: plan.monthly_sale_price,
-            monthly_cost_price: plan.monthly_cost_price,
-            yearly_sale_price: plan.yearly_sale_price,
-            yearly_cost_price: plan.yearly_cost_price,
+            // monthly_sale_price: plan.monthly_sale_price,
+            no_of_employees: plan.no_of_employees,
+            price: plan.price,
+            discount: plan.discount,
+            // yearly_cost_price: plan.yearly_cost_price,
             trial_days: plan.trial_days,
             status: plan.status,
             menu_limits: []
@@ -414,14 +422,32 @@ const getItem = async () => {
                     </div>
 
                     <div class="col-span-12 sm:col-span-6">
+                        <div>
+                            <label class="block mb-3 required">No Of Employees</label>
+                            <InputField
+                                id="no_of_employees"
+                                v-model="formData.no_of_employees"
+                                variant="dropdown"
+                                :options="employeeRanges"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Select"
+                                class="w-full"
+                                :disabled="busy"
+                            />
+                        </div>
+
+                    </div>
+
+                    <div class="col-span-12 sm:col-span-6">
                         <label class="block mb-2 required"
-                            >Monthly Sale Price</label
+                            >Price</label
                         >
                         <InputField
                             :disabled="busy"
                             class="w-full"
-                            id="monthly_sale_price"
-                            v-model="formData.monthly_sale_price"
+                            id="price"
+                            v-model="formData.price"
                             variant="number"
                             :maxFractionDigits="2"
                             :minFractionDigits="2"
@@ -432,58 +458,23 @@ const getItem = async () => {
                     </div>
 
                     <div class="col-span-12 sm:col-span-6">
-                        <label class="block mb-2 required"
-                            >Monthly Cost Price</label
-                        >
+                        <label class="block mb-2">Discount (%)</label>
                         <InputField
                             :disabled="busy"
                             class="w-full"
-                            id="monthly_cost_price"
-                            v-model="formData.monthly_cost_price"
+                            id="discount"
+                            v-model="formData.discount"
                             variant="number"
                             :maxFractionDigits="2"
-                            :minFractionDigits="2"
+                            :minFractionDigits="0"
                             @keyup.enter="save"
-                            prefix="$"
-                            :min="0.01"
+                            suffix="%"
+                            :step="0.5"
+                            :min="0"
+                            :max="100"
                         />
                     </div>
 
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="block mb-2 required"
-                            >Yearly Sale Price</label
-                        >
-                        <InputField
-                            :disabled="busy"
-                            class="w-full"
-                            id="yearly_sale_price"
-                            v-model="formData.yearly_sale_price"
-                            variant="number"
-                            :maxFractionDigits="2"
-                            :minFractionDigits="2"
-                            @keyup.enter="save"
-                            prefix="$"
-                            :min="0.01"
-                        />
-                    </div>
-
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="block mb-2 required"
-                            >Yearly Cost Price</label
-                        >
-                        <InputField
-                            :disabled="busy"
-                            class="w-full"
-                            id="yearly_cost_price"
-                            v-model="formData.yearly_cost_price"
-                            variant="number"
-                            :maxFractionDigits="2"
-                            :minFractionDigits="2"
-                            @keyup.enter="save"
-                            prefix="$"
-                            :min="0.01"
-                        />
-                    </div>
 
                     <div
                         class="col-span-12 sm:col-span-6"
