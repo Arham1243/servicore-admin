@@ -30,6 +30,15 @@ const employeeRanges = [
     { label: '11-15', value: '11-15' },
     { label: '16-20', value: '16-20' }
 ];
+
+const availableRanges = (currentIndex) => {
+  const selectedValues = formData.value.tiers
+    .map((tier, i) => i !== currentIndex ? tier.no_of_employees : null)
+    .filter(Boolean);
+  
+  return employeeRanges.filter((range) => !selectedValues.includes(range.value));
+};
+
 const formData = ref({
     name: '',
     description: '',
@@ -499,15 +508,15 @@ const getItem = async () => {
                         <div class="col-span-12 sm:col-span-4">
                         <label class="block mb-3 required">No Of Employees</label>
                         <InputField
-                            :id="`no_of_employees_${index}`"
-                            v-model="tier.no_of_employees"
-                            variant="dropdown"
-                            :options="employeeRanges"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Select"
-                            class="w-full"
-                            :disabled="busy"
+                        :id="`no_of_employees_${index}`"
+                        v-model="tier.no_of_employees"
+                        variant="dropdown"
+                        :options="availableRanges(index)"   
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Select"
+                        class="w-full"
+                        :disabled="busy"
                         />
                         </div>
 
