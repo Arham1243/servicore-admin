@@ -28,16 +28,14 @@ const employeeRanges = [
     { label: '1-5', value: '1-5' },
     { label: '6-10', value: '6-10' },
     { label: '11-15', value: '11-15' },
-    { label: '16-20', value: '16-20' },
+    { label: '16-20', value: '16-20' }
 ];
 const formData = ref({
     name: '',
     description: '',
     no_of_employees: null,
-    // monthly_sale_price: null,
     price: null,
     discount: null,
-    // yearly_cost_price: null,
     trial_days: null,
     status: true,
     menu_limits: []
@@ -256,11 +254,9 @@ async function resetForm() {
         Object.assign(formData.value, {
             name: '',
             description: '',
-            // monthly_sale_price: null,
             price: null,
             discount: null,
             no_of_employees: null,
-            // yearly_cost_price: null,
             trial_days: null,
             status: true,
             menu_limits: []
@@ -298,11 +294,9 @@ const getItem = async () => {
         formData.value = {
             name: plan.name || '',
             description: plan.description || '',
-            // monthly_sale_price: plan.monthly_sale_price,
             no_of_employees: plan.no_of_employees,
             price: plan.price,
             discount: plan.discount,
-            // yearly_cost_price: plan.yearly_cost_price,
             trial_days: plan.trial_days,
             status: plan.status,
             menu_limits: []
@@ -421,9 +415,11 @@ const getItem = async () => {
                         />
                     </div>
 
-                    <div class="col-span-12 sm:col-span-6">
+                    <div class="col-span-12 sm:col-span-4">
                         <div>
-                            <label class="block mb-3 required">No Of Employees</label>
+                            <label class="block mb-3 required"
+                                >No Of Employees</label
+                            >
                             <InputField
                                 id="no_of_employees"
                                 v-model="formData.no_of_employees"
@@ -436,13 +432,10 @@ const getItem = async () => {
                                 :disabled="busy"
                             />
                         </div>
-
                     </div>
 
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="block mb-2 required"
-                            >Price</label
-                        >
+                    <div class="col-span-12 sm:col-span-4">
+                        <label class="block mb-2 required">Price</label>
                         <InputField
                             :disabled="busy"
                             class="w-full"
@@ -457,7 +450,7 @@ const getItem = async () => {
                         />
                     </div>
 
-                    <div class="col-span-12 sm:col-span-6">
+                    <div class="col-span-12 sm:col-span-4">
                         <label class="block mb-2">Discount (%)</label>
                         <InputField
                             :disabled="busy"
@@ -474,7 +467,6 @@ const getItem = async () => {
                             :max="100"
                         />
                     </div>
-
 
                     <div
                         class="col-span-12 sm:col-span-6"
