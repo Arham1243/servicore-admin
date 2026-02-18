@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { usePlanStore, useGlobalStore, useSessionStore } from '@/stores';
 import { useMenuStore } from '@/stores';
 import { useFormDirty } from '@/composables/useFormDirty';
-
+import { watch } from 'vue';
 const props = defineProps({
     mode: { type: String, required: true }
 });
@@ -33,12 +33,30 @@ const employeeRanges = [
 const formData = ref({
     name: '',
     description: '',
-    no_of_employees: null,
-    price: null,
-    discount: null,
+    // no_of_employees: null,
+    // price: null,
+    // discount: null,
     trial_days: null,
     status: true,
-    menu_limits: []
+    menu_limits: [],
+    apply_to_all: false,
+  tiers: [
+    { no_of_employees: null, price: null, discount: null }
+  ]
+});
+
+const addTier = () => {
+  formData.value.tiers.push({ no_of_employees: null, price: null, discount: null });
+};
+
+const removeTier = (index) => {
+  formData.value.tiers.splice(index, 1);
+}
+
+watch(() => formData.value.apply_to_all, (val) => {
+  if (val) {
+    formData.value.tiers.splice(1); // keep only first row
+  }
 });
 
 const { isDirty, resetDirty } = useFormDirty(formData);
@@ -254,12 +272,16 @@ async function resetForm() {
         Object.assign(formData.value, {
             name: '',
             description: '',
-            price: null,
-            discount: null,
-            no_of_employees: null,
+            // price: null,
+            // discount: null,
+            // no_of_employees: null,
             trial_days: null,
             status: true,
-            menu_limits: []
+            menu_limits: [],
+            apply_to_all: false,
+            tiers: [
+                { no_of_employees: null, price: null, discount: null }
+            ]
         });
         initMenuSelections();
     }
@@ -267,21 +289,50 @@ async function resetForm() {
 }
 
 const save = async () => {
-    try {
-        busy.value = true;
-        if (isEditMode.value) {
-            await planStore.update(planId.value, formData.value);
-            await getItem();
-        } else {
-            const res = await planStore.create(formData.value);
-            resetForm();
-            pushRoute('EditPlan', { id: res?.data?.id });
-        }
-    } catch (error) {
-        console.error(error);
-    } finally {
-        busy.value = false;
+  try {
+    busy.value = true;
+
+    const planPayload = {
+      name: formData.value.name,
+      description: formData.value.description,
+      trial_days: formData.value.trial_days,
+      status: formData.value.status,
+      menu_limits: formData.value.menu_limits,
+      apply_to_all: formData.value.apply_to_all,
+    };
+
+    let pricings;
+
+    if (formData.value.apply_to_all) {
+      // Expand the single tier to all employee ranges with same price/discount
+      const { price, discount } = formData.value.tiers[0];
+      pricings = employeeRanges.map((range) => ({
+        no_of_employees: range.value,
+        price,
+        discount
+      }));
+    } else {
+      // Send tiers as-is
+      pricings = formData.value.tiers.map((tier) => ({
+        no_of_employees: tier.no_of_employees,
+        price: tier.price,
+        discount: tier.discount
+      }));
     }
+
+    if (isEditMode.value) {
+      await planStore.update(planId.value, { ...planPayload, pricings });
+      await getItem();
+    } else {
+      const res = await planStore.create({ ...planPayload, pricings });
+      resetForm();
+      pushRoute('EditPlan', { id: res?.data?.id });
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    busy.value = false;
+  }
 };
 
 const getItem = async () => {
@@ -291,15 +342,26 @@ const getItem = async () => {
         const res = await planStore.show(planId.value);
         const plan = res.data;
 
+        // Map API tiers (if backend returns array) or fall back to single flat fields
+        const tiers = plan.planPricings?.length
+        ? plan.planPricings.map((p) => ({
+            no_of_employees: p.no_of_employees ?? null,
+            price: p.price ?? null,
+            discount: p.discount ?? null
+            }))
+        : [{ no_of_employees: null, price: null, discount: null }];
+
         formData.value = {
             name: plan.name || '',
             description: plan.description || '',
-            no_of_employees: plan.no_of_employees,
-            price: plan.price,
-            discount: plan.discount,
+            // no_of_employees: plan.no_of_employees,
+            // price: plan.price,
+            // discount: plan.discount,
             trial_days: plan.trial_days,
             status: plan.status,
-            menu_limits: []
+            menu_limits: [],
+            apply_to_all: plan.apply_to_all || false,
+            tiers
         };
 
         initMenuSelections();
@@ -415,32 +477,47 @@ const getItem = async () => {
                         />
                     </div>
 
-                    <div class="col-span-12 sm:col-span-4">
-                        <div>
-                            <label class="block mb-3 required"
-                                >No Of Employees</label
-                            >
-                            <InputField
-                                id="no_of_employees"
-                                v-model="formData.no_of_employees"
-                                variant="dropdown"
-                                :options="employeeRanges"
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Select"
-                                class="w-full"
-                                :disabled="busy"
-                            />
-                        </div>
+                    <!-- Pricing Tiers -->
+                    <div class="col-span-12">
+                    <!-- Plus button top-right -->
+                    <div class="flex justify-end mb-3">
+                        <Button
+                        icon="pi pi-plus-circle"
+                        rounded
+                        :disabled="busy || formData.apply_to_all || formData.tiers.length >= employeeRanges.length"
+                        @click="addTier"
+                        v-tooltip.top="'Add tier'"
+                        />
                     </div>
 
-                    <div class="col-span-12 sm:col-span-4">
+                    <!-- Tier rows -->
+                    <div
+                        v-for="(tier, index) in formData.tiers"
+                        :key="index"
+                        class="grid grid-cols-12 gap-4 mb-4 items-end"
+                    >
+                        <div class="col-span-12 sm:col-span-4">
+                        <label class="block mb-3 required">No Of Employees</label>
+                        <InputField
+                            :id="`no_of_employees_${index}`"
+                            v-model="tier.no_of_employees"
+                            variant="dropdown"
+                            :options="employeeRanges"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select"
+                            class="w-full"
+                            :disabled="busy"
+                        />
+                        </div>
+
+                        <div class="col-span-12 sm:col-span-4">
                         <label class="block mb-2 required">Price</label>
                         <InputField
                             :disabled="busy"
                             class="w-full"
-                            id="price"
-                            v-model="formData.price"
+                            :id="`price_${index}`"
+                            v-model="tier.price"
                             variant="number"
                             :maxFractionDigits="2"
                             :minFractionDigits="2"
@@ -448,15 +525,15 @@ const getItem = async () => {
                             prefix="$"
                             :min="0.01"
                         />
-                    </div>
+                        </div>
 
-                    <div class="col-span-12 sm:col-span-4">
+                        <div class="col-span-12 sm:col-span-3">
                         <label class="block mb-2">Discount (%)</label>
                         <InputField
                             :disabled="busy"
                             class="w-full"
-                            id="discount"
-                            v-model="formData.discount"
+                            :id="`discount_${index}`"
+                            v-model="tier.discount"
                             variant="number"
                             :maxFractionDigits="2"
                             :minFractionDigits="0"
@@ -466,6 +543,36 @@ const getItem = async () => {
                             :min="0"
                             :max="100"
                         />
+                        </div>
+
+                        <!-- Delete button — only show for rows beyond the first -->
+                        <div class="col-span-12 sm:col-span-1 flex items-end pb-1">
+                        <Button
+                            v-if="index > 0"
+                            icon="pi pi-times"
+                            severity="danger"
+                            rounded
+                            :disabled="busy"
+                            @click="removeTier(index)"
+                            v-tooltip.top="'Remove tier'"
+                        />
+                        </div>
+                    </div>
+
+                    <!-- Apply to all checkbox -->
+                    <div class="flex items-center gap-3 mt-2">
+                        <InputField
+                        id="apply_to_all"
+                        binary
+                        inputId="apply_to_all"
+                        variant="checkbox"
+                        v-model="formData.apply_to_all"
+                        :disabled="busy"
+                        />
+                        <label class="cursor-pointer" for="apply_to_all">
+                        Apply To All Tiers
+                        </label>
+                    </div>
                     </div>
 
                     <div

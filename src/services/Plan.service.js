@@ -17,7 +17,7 @@ export const update = (id, payload) => {
 
 export const show = (id) => {
     return AxiosService.get(`${BASE_URL}/plans/${id}`, {
-        params: { include: 'planMenuLimits' }
+        params: { include: 'planMenuLimits,planPricings' }
     });
 };
 
