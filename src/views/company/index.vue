@@ -1,7 +1,7 @@
 <script setup>
-import CompaniesTable from '@/components/company/CompaniesTable.vue';
+import CompanyTable from '@/components/company/CompanyTable.vue';
 </script>
 
 <template>
-    <CompaniesTable />
+    <CompanyTable />
 </template>

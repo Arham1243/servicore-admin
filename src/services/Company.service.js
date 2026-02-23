@@ -6,3 +6,7 @@ export const search = (payload, params) => {
         params
     });
 };
+
+export const impersonate = (companyId) => {
+    return AxiosService.post(`${BASE_URL}/companies/${companyId}/impersonate`);
+};

@@ -1,9 +1,13 @@
 <script setup>
 import { onBeforeMount, ref } from 'vue';
 import { useCompanyStore } from '@/stores/Company';
+import { useGlobalStore } from '@/stores';
 import { PaginationOptions, SortFilterOptions } from '@/config';
 
+const TENANT_APP_URL = import.meta.env.VITE_TENANT_APP_URL;
+
 const companyStore = useCompanyStore();
+const globalStore = useGlobalStore();
 
 const pagination = new PaginationOptions();
 const sortFilters = new SortFilterOptions();
@@ -49,8 +53,18 @@ const getItems = async () => {
     }
 };
 
-const loginToPortal = (company) => {
-    //    TODO: Call impersonation endpoint
+const loginToPortal = async (company) => {
+    try {
+        loading.value = true;
+        const res = await companyStore.impersonate(company.id);
+        const { access_token, expires_in } = res.data;
+        const url = `${TENANT_APP_URL}/impersonate?token=${encodeURIComponent(access_token)}&expires_in=${expires_in}`;
+        window.open(url, '_blank');
+    } catch (e) {
+        // Error handled by globalStore
+    } finally {
+        loading.value = false;
+    }
 };
 </script>
 

@@ -12,7 +12,15 @@ export const useCompanyStore = defineStore('CompanyStore', () => {
         });
     };
 
+    const impersonate = (companyId) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CompanyService.impersonate(companyId);
+            return res.data;
+        });
+    };
+
     return {
-        search
+        search,
+        impersonate
     };
 });
