@@ -10,12 +10,35 @@
         "key": "menu",
         "label": "Menu",
         "to": "/menu",
-        "icon": "pi pi-fw pi-list"
+        "icon": "pi pi-fw pi-list",
+        "permissions": ["menu.view"]
     },
     {
         "key": "plans",
         "label": "Plans",
         "to": "/plans",
-        "icon": "pi pi-fw pi-box"
+        "icon": "pi pi-fw pi-box",
+        "permissions": ["plans.view"]
+    },
+    {
+        "key": "roles",
+        "label": "Roles",
+        "to": "/roles",
+        "icon": "pi pi-fw pi-shield",
+        "permissions": ["roles.view"]
+    },
+    {
+        "key": "admins",
+        "label": "Admins",
+        "to": "/admins",
+        "icon": "pi pi-fw pi-users",
+        "permissions": ["admins.view"]
+    },
+    {
+        "key": "companies",
+        "label": "Companies",
+        "to": "/companies",
+        "icon": "pi pi-fw pi-building",
+        "permissions": ["companies.view"]
     }
 ]

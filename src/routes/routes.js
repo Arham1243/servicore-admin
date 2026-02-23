@@ -29,7 +29,8 @@ export default [
                 name: 'Menu',
                 component: () => import('@/views/menu/index.vue'),
                 meta: {
-                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Menu' }]
+                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Menu' }],
+                    permission: 'menu.view'
                 }
             },
             {
@@ -37,7 +38,8 @@ export default [
                 name: 'Plans',
                 component: () => import('@/views/plan/index.vue'),
                 meta: {
-                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Plans' }]
+                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Plans' }],
+                    permission: 'plans.view'
                 }
             },
             {
@@ -49,7 +51,8 @@ export default [
                         { label: 'Dashboard' },
                         { label: 'Plans', route: '/plans' },
                         { label: 'Add Plan' }
-                    ]
+                    ],
+                    permission: 'plans.create'
                 }
             },
             {
@@ -61,7 +64,51 @@ export default [
                         { label: 'Dashboard' },
                         { label: 'Plans', route: '/plans' },
                         { label: 'Edit Plan' }
-                    ]
+                    ],
+                    permission: 'plans.edit'
+                }
+            },
+            {
+                path: 'roles',
+                name: 'Roles',
+                component: () => import('@/views/role/index.vue'),
+                meta: {
+                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Roles' }],
+                    permission: 'roles.view'
+                }
+            },
+            {
+                path: 'roles/:id/permissions',
+                name: 'RolePermissions',
+                component: () => import('@/views/role/permissions.vue'),
+                meta: {
+                    breadcrumb: [
+                        { label: 'Dashboard' },
+                        { label: 'Roles', route: '/roles' },
+                        { label: 'Permissions' }
+                    ],
+                    permission: 'roles.edit'
+                }
+            },
+            {
+                path: 'admins',
+                name: 'Admins',
+                component: () => import('@/views/admin/index.vue'),
+                meta: {
+                    breadcrumb: [{ label: 'Dashboard' }, { label: 'Admins' }],
+                    permission: 'admins.view'
+                }
+            },
+            {
+                path: 'companies',
+                name: 'Companies',
+                component: () => import('@/views/company/index.vue'),
+                meta: {
+                    breadcrumb: [
+                        { label: 'Dashboard' },
+                        { label: 'Companies' }
+                    ],
+                    permission: 'companies.view'
                 }
             }
         ]

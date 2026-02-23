@@ -3,9 +3,12 @@ import { ref } from 'vue';
 import { useCookies } from 'vue3-cookies';
 
 import { AuthService } from '@/services';
+import { updateAbility } from '@/plugins/ability';
+
 export const useSessionStore = defineStore('SessionStore', () => {
     const { cookies } = useCookies();
     const user = ref(null);
+    const permissions = ref([]);
     const intendedRoute = ref(sessionStorage.getItem('intendedRoute'));
     const freeTrialPlanAvailable = ref(false);
 
@@ -26,17 +29,17 @@ export const useSessionStore = defineStore('SessionStore', () => {
     };
 
     const clearSessionState = () => {
-        cookies.remove('tmb_cookie', null);
+        cookies.remove('servicore_admin_cookie', null);
         sessionStorage.removeItem('email');
         user.value = null;
     };
 
     const setCookie = (value) => {
-        cookies.set('tmb_cookie', value, '7d');
+        cookies.set('servicore_admin_cookie', value, '7d');
     };
 
     const getCookie = () => {
-        return cookies.get('tmb_cookie');
+        return cookies.get('servicore_admin_cookie');
     };
 
     const setEmail = (value) => {
@@ -52,6 +55,8 @@ export const useSessionStore = defineStore('SessionStore', () => {
             const res = (await AuthService.me()).data;
             user.value = res.data;
             freeTrialPlanAvailable.value = res.free_trial_plan_available;
+            permissions.value = res.permissions || [];
+            updateAbility(permissions.value);
             return user.value;
         } catch (error) {
             throw error;
@@ -75,6 +80,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         clearSessionState,
         me,
         user,
+        permissions,
         freeTrialPlanAvailable,
 
         setEmail,

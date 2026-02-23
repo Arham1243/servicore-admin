@@ -46,16 +46,18 @@ const menuItems = computed(() => {
         {
             label: 'Edit',
             icon: 'pi pi-pencil',
+            permission: 'menu.edit',
             command: () => editItem()
         },
         {
             label: isItemActive.value ? 'Make Inactive' : 'Make Active',
             icon: isItemActive.value ? 'pi pi-times' : 'pi pi-check',
+            permission: 'menu.edit',
             command: () => showChangeStatusDialog()
         }
     ].filter(Boolean);
 
-    return allMenuItems;
+    return helpers.filterByPermission(allMenuItems);
 });
 
 const isItemActive = computed(() => {
@@ -258,6 +260,7 @@ const formatType = (type) => {
                 </Column>
 
                 <Column
+                    v-if="$ability.can('menu.edit')"
                     columnKey="actions"
                     header="Actions"
                     class="flex justify-end"

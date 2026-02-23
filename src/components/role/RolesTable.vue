@@ -1,13 +1,12 @@
 <script setup>
 import { computed, onBeforeMount, ref } from 'vue';
-import { usePlanStore } from '@/stores';
+import { useAdminRoleStore } from '@/stores/AdminRole';
 import { PaginationOptions, SortFilterOptions } from '@/config';
 import { useRouter } from 'vue-router';
 import { useHelpers } from '@/composables/useHelpers';
 
 const helpers = useHelpers();
-
-const planStore = usePlanStore();
+const roleStore = useAdminRoleStore();
 const router = useRouter();
 
 const pagination = new PaginationOptions();
@@ -20,6 +19,9 @@ const loading = ref(false);
 const items = ref([]);
 const totalRecords = ref();
 const changeStatusDialog = ref(false);
+const createDialog = ref(false);
+const editDialog = ref(false);
+const roleName = ref('');
 
 onBeforeMount(async () => {
     await getItems();
@@ -28,23 +30,31 @@ onBeforeMount(async () => {
 const menuItems = computed(() => {
     if (!selectedItem.value) return [];
 
+    const isSystem = selectedItem.value?.system;
+
     const allMenuItems = [
         {
             label: 'Edit',
             icon: 'pi pi-pencil',
-            permission: 'plans.edit',
-            command: () => goToEdit()
+            permission: 'roles.edit',
+            command: () => showEditDialog()
         },
         {
+            label: 'Permissions',
+            icon: 'pi pi-lock',
+            permission: 'roles.edit',
+            command: () => goToPermissions()
+        },
+        !isSystem && {
             label: isItemActive.value ? 'Make Inactive' : 'Make Active',
             icon: isItemActive.value ? 'pi pi-times' : 'pi pi-check',
-            permission: 'plans.edit',
+            permission: 'roles.edit',
             command: () => showChangeStatusDialog()
         },
-        {
+        !isSystem && {
             label: 'Delete',
             icon: 'pi pi-trash',
-            permission: 'plans.delete',
+            permission: 'roles.delete',
             command: () => showDeleteDialog()
         }
     ].filter(Boolean);
@@ -60,13 +70,22 @@ const isItemActive = computed(() => {
     return selectedItem.value && selectedItem.value.status;
 });
 
-const goToAdd = () => {
-    router.push({ name: 'AddPlan' });
+const goToPermissions = () => {
+    if (!selectedItem.value?.id) return;
+    router.push({
+        name: 'RolePermissions',
+        params: { id: selectedItem.value.id }
+    });
 };
 
-const goToEdit = () => {
-    if (!selectedItem.value?.id) return;
-    router.push({ name: 'EditPlan', params: { id: selectedItem.value.id } });
+const showCreateDialog = () => {
+    roleName.value = '';
+    createDialog.value = true;
+};
+
+const showEditDialog = () => {
+    roleName.value = selectedItem.value?.name || '';
+    editDialog.value = true;
 };
 
 const showChangeStatusDialog = () => {
@@ -103,9 +122,38 @@ const getItems = async () => {
         if (!payload.sort || payload.sort.length === 0) {
             payload.sort = [{ field: 'name', direction: 'asc' }];
         }
-        const res = await planStore.search(payload, params);
+        const res = await roleStore.search(payload, params);
         items.value = res.data;
         totalRecords.value = res.meta.total;
+    } finally {
+        loading.value = false;
+    }
+};
+
+const createRole = async () => {
+    try {
+        loading.value = true;
+        await roleStore.create({ name: roleName.value, status: true });
+        createDialog.value = false;
+        roleName.value = '';
+        await getItems();
+    } finally {
+        loading.value = false;
+    }
+};
+
+const updateRole = async () => {
+    try {
+        loading.value = true;
+        if (selectedItem.value) {
+            await roleStore.update(selectedItem.value.id, {
+                name: roleName.value
+            });
+        }
+        editDialog.value = false;
+        roleName.value = '';
+        await getItems();
+        selectedItem.value = {};
     } finally {
         loading.value = false;
     }
@@ -115,7 +163,7 @@ const deleteItem = async () => {
     try {
         loading.value = true;
         if (selectedItem.value) {
-            await planStore.deleteItem(selectedItem.value.id);
+            await roleStore.deleteItem(selectedItem.value.id);
         }
         await getItems();
         selectedItem.value = {};
@@ -128,7 +176,7 @@ const changeStatus = async () => {
     try {
         loading.value = true;
         if (selectedItem.value) {
-            await planStore.changeStatus(selectedItem.value.id);
+            await roleStore.changeStatus(selectedItem.value.id);
         }
         await getItems();
         selectedItem.value = {};
@@ -136,26 +184,21 @@ const changeStatus = async () => {
         loading.value = false;
     }
 };
-
-const formatCurrency = (value) => {
-    if (value === null || value === undefined) return '--';
-    return `$${Number(value).toFixed(2)}`;
-};
 </script>
 
 <template>
     <TitleHeader>
         <template #title>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold">Plans</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold">Roles</h1>
             </div>
         </template>
         <template #actions>
             <Button
-                v-if="$ability.can('plans.create')"
-                label="Add Plan"
+                v-if="$ability.can('roles.create')"
+                label="Add Role"
                 icon="pi pi-plus"
-                @click="goToAdd"
+                @click="showCreateDialog"
             />
         </template>
     </TitleHeader>
@@ -181,7 +224,7 @@ const formatCurrency = (value) => {
                         />
                     </div>
                 </template>
-                <template #empty> No plans found. </template>
+                <template #empty> No roles found. </template>
                 <Column
                     columnKey="name"
                     :sortable="true"
@@ -189,88 +232,7 @@ const formatCurrency = (value) => {
                     header="Name"
                 >
                     <template #body="{ data }">
-                        <router-link
-                            :to="{
-                                name: 'EditPlan',
-                                params: { id: data.id }
-                            }"
-                            class="text-blue-600 hover:text-blue-800 cursor-pointer"
-                        >
-                            <div class="flex items-center gap-4 flex-wrap">
-                                {{ data.name }}
-                                <Tag
-                                    severity="info"
-                                    class="whitespace-nowrap"
-                                    v-if="data.trial_days > 0"
-                                    value="Free Trial"
-                                />
-                            </div>
-                        </router-link>
-                    </template>
-                </Column>
-
-                <Column
-                    columnKey="description"
-                    field="description"
-                    header="Description"
-                >
-                    <template #body="{ data }">
-                        {{ data.description || '-' }}
-                    </template>
-                </Column>
-
-                <Column
-                    columnKey="monthly_sale_price"
-                    :sortable="true"
-                    field="monthly_sale_price"
-                    header="Monthly Sale Price"
-                >
-                    <template #body="{ data }">
-                        {{ formatCurrency(data.monthly_sale_price) }}
-                    </template>
-                </Column>
-
-                <Column
-                    columnKey="monthly_cost_price"
-                    :sortable="true"
-                    field="monthly_cost_price"
-                    header="Monthly Cost Price"
-                >
-                    <template #body="{ data }">
-                        {{ formatCurrency(data.monthly_cost_price) }}
-                    </template>
-                </Column>
-
-                <Column
-                    columnKey="yearly_sale_price"
-                    :sortable="true"
-                    field="yearly_sale_price"
-                    header="Yearly Sale Price"
-                >
-                    <template #body="{ data }">
-                        {{ formatCurrency(data.yearly_sale_price) }}
-                    </template>
-                </Column>
-
-                <Column
-                    columnKey="yearly_cost_price"
-                    :sortable="true"
-                    field="yearly_cost_price"
-                    header="Yearly Cost Price"
-                >
-                    <template #body="{ data }">
-                        {{ formatCurrency(data.yearly_cost_price) }}
-                    </template>
-                </Column>
-
-                <Column
-                    columnKey="trial_days"
-                    :sortable="true"
-                    field="trial_days"
-                    header="Trial Days"
-                >
-                    <template #body="{ data }">
-                        {{ data.trial_days ?? '--' }}
+                        {{ data.name }}
                     </template>
                 </Column>
 
@@ -287,10 +249,19 @@ const formatCurrency = (value) => {
                     </template>
                 </Column>
 
+                <Column columnKey="system" field="system" class="text-right">
+                    <template #body="{ data }">
+                        <i
+                            v-if="data.system"
+                            class="pi pi-lock text-red-500 !text-xl opacity-90"
+                        ></i>
+                    </template>
+                </Column>
+
                 <Column
                     v-if="
-                        $ability.can('plans.edit') ||
-                        $ability.can('plans.delete')
+                        $ability.can('roles.edit') ||
+                        $ability.can('roles.delete')
                     "
                     columnKey="actions"
                     header="Actions"
@@ -319,11 +290,75 @@ const formatCurrency = (value) => {
         </template>
     </Card>
 
+    <!-- Create Dialog -->
+    <Dialog
+        v-model:visible="createDialog"
+        header="Create Role"
+        :modal="true"
+        class="w-full max-w-lg"
+    >
+        <div class="flex flex-col gap-4 pt-4">
+            <div class="flex flex-col gap-2">
+                <label for="roleName">Role Name</label>
+                <InputText
+                    id="roleName"
+                    v-model="roleName"
+                    placeholder="Enter role name"
+                />
+            </div>
+        </div>
+        <template #footer>
+            <Button
+                label="Cancel"
+                severity="secondary"
+                @click="createDialog = false"
+            />
+            <Button
+                label="Create"
+                :loading="loading"
+                :disabled="!roleName"
+                @click="createRole"
+            />
+        </template>
+    </Dialog>
+
+    <!-- Edit Dialog -->
+    <Dialog
+        v-model:visible="editDialog"
+        header="Edit Role"
+        :modal="true"
+        class="w-full max-w-lg"
+    >
+        <div class="flex flex-col gap-4 pt-4">
+            <div class="flex flex-col gap-2">
+                <label for="editRoleName">Role Name</label>
+                <InputText
+                    id="editRoleName"
+                    v-model="roleName"
+                    placeholder="Enter role name"
+                />
+            </div>
+        </div>
+        <template #footer>
+            <Button
+                label="Cancel"
+                severity="secondary"
+                @click="editDialog = false"
+            />
+            <Button
+                label="Update"
+                :loading="loading"
+                :disabled="!roleName"
+                @click="updateRole"
+            />
+        </template>
+    </Dialog>
+
     <Confirmation
         v-model="changeStatusDialog"
         variant="danger"
         :header="isItemActive ? 'Make Inactive' : 'Make Active'"
-        :content="`Are you sure you want to make this plan ${isItemActive ? 'inactive' : 'active'}?`"
+        :content="`Are you sure you want to make this role ${isItemActive ? 'inactive' : 'active'}?`"
         :confirmButtonText="isItemActive ? 'Make Inactive' : 'Make Active'"
         @confirm="changeStatus"
     />
@@ -331,8 +366,8 @@ const formatCurrency = (value) => {
     <Confirmation
         v-model="deleteDialog"
         variant="danger"
-        header="Delete Plan"
-        content="Are you sure you want to delete this plan?"
+        header="Delete Role"
+        content="Are you sure you want to delete this role?"
         @confirm="deleteItem"
     />
 </template>
