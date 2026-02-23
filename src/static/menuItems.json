@@ -13,20 +13,6 @@
         "icon": "pi pi-fw pi-list"
     },
     {
-        "key": "administration.roles",
-        "label": "User Roles",
-        "to": "/administration/roles",
-        "icon": "pi pi-fw pi-shield",
-        "permissions": ["administration.view"]
-    },
-    {
-        "key": "administration.email-templates",
-        "label": "Email Templates",
-        "to": "/administration/email-templates",
-        "icon": "pi pi-fw pi-envelope",
-        "permissions": ["administration.view"]
-    },
-    {
         "key": "plans",
         "label": "Plans",
         "to": "/plans",
