@@ -110,6 +110,18 @@ export default [
                     ],
                     permission: 'companies.view'
                 }
+            },
+            {
+                path: 'subscriptions',
+                name: 'Subscriptions',
+                component: () => import('@/views/subscription/index.vue'),
+                meta: {
+                    breadcrumb: [
+                        { label: 'Dashboard' },
+                        { label: 'Subscriptions' }
+                    ],
+                    permission: 'subscriptions.view'
+                }
             }
         ]
     },

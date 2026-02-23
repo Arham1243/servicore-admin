@@ -40,5 +40,12 @@
         "to": "/companies",
         "icon": "pi pi-fw pi-building",
         "permissions": ["companies.view"]
+    },
+    {
+        "key": "subscriptions",
+        "label": "Subscriptions",
+        "to": "/subscriptions",
+        "icon": "pi pi-fw pi-credit-card",
+        "permissions": ["subscriptions.view"]
     }
 ]

@@ -204,8 +204,10 @@ const cancelChanges = () => {
                         <Column header="Module" field="label">
                             <template #body="{ data }">
                                 <span class="font-semibold">{{
-                                    data.label
-                                }}</span>
+            data.label
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase())
+        }}</span>
                             </template>
                         </Column>
                         <Column

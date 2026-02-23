@@ -690,9 +690,6 @@ const getItem = async () => {
                                     >
                                         <div
                                             class="flex items-center gap-2"
-                                            v-tooltip.top="
-                                                'Enable for no usage cap on this feature'
-                                            "
                                         >
                                             <Checkbox
                                                 :modelValue="
@@ -807,9 +804,6 @@ const getItem = async () => {
                                         >
                                             <div
                                                 class="flex items-center gap-2"
-                                                v-tooltip.top="
-                                                    'Enable for no usage cap on this feature'
-                                                "
                                             >
                                                 <Checkbox
                                                     :modelValue="

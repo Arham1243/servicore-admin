@@ -9,5 +9,6 @@ export * from './Plan';
 export * from './AdminRole';
 export * from './Admin';
 export * from './Company';
+export * from './Subscription';
 
 export default createPinia();
