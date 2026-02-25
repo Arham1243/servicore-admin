@@ -36,10 +36,10 @@ const menuItems = computed(() => {
 
     const allMenuItems = [
         {
-            label: 'View Payment History',
+            label: '',
             icon: 'pi pi-history',
-            permission: 'subscription_payments.view',
-            command: () => openPaymentHistory(selectedItem.value)
+            permission: '',
+            command: () =>
         }
     ].filter(Boolean);
 
@@ -279,20 +279,13 @@ const formatCurrency = (value) => {
                 >
                     <template #body="{ data }">
                         <Button
-                            class="!px-3 !py-2"
-                            label="Actions"
+                            class="!px-3 !py-2 whitespace-nowrap"
+                            label="View Payment History"
                             variant="outlined"
-                            iconPos="right"
-                            icon="pi pi-chevron-down"
+                            iconPos="left"
+                            icon="pi pi-eye"
                             size="small"
-                            @click="showActions($event, data)"
-                        />
-
-                        <Menu
-                            ref="menu"
-                            id="overlay_menu"
-                            :model="menuItems"
-                            :popup="true"
+                            @click="openPaymentHistory(data)"
                         />
                     </template>
                 </Column>
@@ -309,9 +302,11 @@ const formatCurrency = (value) => {
         :closable="true"
     >
         <div v-if="selectedSubscription" class="mb-4 text-sm text-gray-600">
-            <span class="font-semibold">Company:</span> {{ selectedSubscription.company?.name || '-' }}
+            <span class="font-semibold">Company:</span>
+            {{ selectedSubscription.company?.name || '-' }}
             &nbsp;|&nbsp;
-            <span class="font-semibold">Plan:</span> {{ selectedSubscription.plan?.name || '-' }}
+            <span class="font-semibold">Plan:</span>
+            {{ selectedSubscription.plan?.name || '-' }}
             &nbsp;|&nbsp;
             <span class="font-semibold">Status:</span>
             <StatusTag :status="selectedSubscription.status" class="ml-1" />
