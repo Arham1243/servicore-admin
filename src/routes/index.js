@@ -4,7 +4,7 @@ import { useSessionStore, useGlobalStore } from '@/stores';
 import { ability } from '@/plugins/ability';
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory('/admin/'),
     routes: routes
 });
 
@@ -48,7 +48,9 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    requiredPermissions = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions];
+    requiredPermissions = Array.isArray(requiredPermissions)
+        ? requiredPermissions
+        : [requiredPermissions];
 
     const hasPermission = requiredPermissions.some((permission) => {
         return ability.can(permission);
@@ -66,7 +68,9 @@ router.beforeEach(async (to, from, next) => {
                     return next({ name: child.name });
                 }
 
-                childPerms = Array.isArray(childPerms) ? childPerms : [childPerms];
+                childPerms = Array.isArray(childPerms)
+                    ? childPerms
+                    : [childPerms];
 
                 const canViewChild = childPerms.some((p) => ability.can(p));
                 if (canViewChild) {

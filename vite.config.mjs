@@ -7,6 +7,7 @@ import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    base: '/admin/',
     optimizeDeps: {
         noDiscovery: true,
         include: ['quill']
@@ -18,8 +19,8 @@ export default defineConfig({
         })
     ],
     server: {
-        host: true, 
-        port: 3000,
+        host: true,
+        port: 3000
     },
     resolve: {
         alias: {
