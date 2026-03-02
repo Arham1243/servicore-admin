@@ -31,21 +31,6 @@ onBeforeMount(async () => {
     await getItems();
 });
 
-const menuItems = computed(() => {
-    if (!selectedItem.value) return [];
-
-    const allMenuItems = [
-        {
-            label: '',
-            icon: 'pi pi-history',
-            permission: '',
-            command: () =>
-        }
-    ].filter(Boolean);
-
-    return helpers.filterByPermission(allMenuItems);
-});
-
 const showActions = (event, item) => {
     selectedItem.value = item;
     menu.value.toggle(event);
@@ -104,7 +89,11 @@ const getPayments = async () => {
             payload.sort = [{ field: 'created_at', direction: 'desc' }];
         }
         payload.filters = [
-            { field: 'subscription_id', operator: '=', value: selectedSubscription.value.id }
+            {
+                field: 'subscription_id',
+                operator: '=',
+                value: selectedSubscription.value.id
+            }
         ];
         const res = await subscriptionStore.searchPayments(payload, params);
         paymentItems.value = res.data;
