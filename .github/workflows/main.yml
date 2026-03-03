@@ -24,35 +24,14 @@ jobs:
                       ftp_username_secret: FTP_USERNAME
                       ftp_password_secret: FTP_PASSWORD
 
-                    # Promedic Environment
-                    - branch: promedic
-                      environment: promedic
-                      api_base_url: https://promedic.servicore.io/backend
-                      app_url: https://promedic.servicore.io
-                      customer_portal_url: https://cp-promedic.servicore.io
-                      ftp_server_secret: FTP_SERVER_PROMEDIC
-                      ftp_username_secret: FTP_USERNAME_PROMEDIC
-                      ftp_password_secret: FTP_PASSWORD_PROMEDIC
-
-                    # Demo Environment
-                    - branch: demo
-                      environment: demo
-                      api_base_url: https://demo.servicore.io/backend
-                      app_url: https://demo.servicore.io
-                      customer_portal_url: https://cp-demo.servicore.io
-                      ftp_server_secret: FTP_SERVER_DEMO
-                      ftp_username_secret: FTP_USERNAME_DEMO
-                      ftp_password_secret: FTP_PASSWORD_DEMO
-
-                    # Staging Environment
-                    - branch: staging
-                      environment: staging
-                      api_base_url: https://staging.servicore.io/backend
-                      app_url: https://staging.servicore.io
-                      customer_portal_url: https://cp-staging.servicore.io
-                      ftp_server_secret: FTP_SERVER_STAGING
-                      ftp_username_secret: FTP_USERNAME_STAGING
-                      ftp_password_secret: FTP_PASSWORD_STAGING
+                    # App Environment
+                    - branch: app
+                      environment: app
+                      api_base_url: https://servicore.io
+                      tenant_app_url: https://app.servicore.io
+                      ftp_server_secret: FTP_SERVER_APP
+                      ftp_username_secret: FTP_USERNAME_APP
+                      ftp_password_secret: FTP_PASSWORD_APP
 
         steps:
             - name: 🚚 Get latest code
@@ -94,8 +73,7 @@ jobs:
                   npm run build
               env:
                   VITE_API_BASE_URL: ${{ matrix.api_base_url }}
-                  VITE_APP_URL: ${{ matrix.app_url }}
-                  VITE_CUSTOMER_PORTAL_URL: ${{ matrix.customer_portal_url }}
+                  VITE_TENANT_APP_URL: ${{ matrix.tenant_app_url }}
 
             - name: 📂 Sync frontend build to ${{ matrix.environment }}
               if: |
