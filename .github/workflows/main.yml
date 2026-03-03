@@ -1,8 +1,8 @@
 on:
     push:
-        branches: [main, demo, staging, promedic]
+        branches: [main, app]
     pull_request:
-        branches: [main, demo, staging, promedic]
+        branches: [main, app]
         types: [opened, synchronize, labeled]
 
 name: 🚀 Deploy website on push
@@ -43,9 +43,7 @@ jobs:
                   (
                     github.event_name == 'pull_request' &&
                     (
-                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
-                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
-                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'app'   && contains(github.event.pull_request.labels.*.name, 'Deploy to App')) ||
                       (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
                     )
                   )
@@ -62,9 +60,7 @@ jobs:
                   (
                     github.event_name == 'pull_request' &&
                     (
-                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
-                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
-                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'app'   && contains(github.event.pull_request.labels.*.name, 'Deploy to App')) ||
                       (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
                     )
                   )
@@ -84,9 +80,7 @@ jobs:
                   (
                     github.event_name == 'pull_request' &&
                     (
-                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
-                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
-                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'app'   && contains(github.event.pull_request.labels.*.name, 'Deploy to App')) ||
                       (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
                     )
                   )
