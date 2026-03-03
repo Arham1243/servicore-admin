@@ -56,7 +56,7 @@ const getItems = async () => {
 const loginToPortal = async (company) => {
     try {
         loading.value = true;
-        const res = await companyStore.impersonate(company.id);
+        const res = await companyStore.impersonate(company.uuid);
         const { access_token, expires_in } = res.data;
         const url = `${TENANT_APP_URL}/impersonate?token=${encodeURIComponent(access_token)}&expires_in=${expires_in}`;
         window.open(url, '_blank');
